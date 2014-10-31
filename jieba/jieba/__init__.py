@@ -306,11 +306,21 @@ def load_userdict(f):
         if not line.rstrip():
             continue
         tup = line.split(" ")
-        word, freq = tup[0], tup[1]
-        if freq.isdigit() is False:
+        if len(tup) < 2:
+            continue
+        if tup[-1].isdigit():
+            word = " ".join(tup[:-1])
+            freq = tup[-1]
+            word_type = None
+        elif tup[-2].isdigit():
+            word = " ".join(tup[:-2])
+            freq = tup[-2]
+            word_type = tup[-1]
+        else:
             continue
         if line_no == 1:
             word = word.replace(u'\ufeff',u"") #remove bom flag if it exists
+        tup = (word, freq, word_type)
         add_word(*tup)
 
 @require_initialized
