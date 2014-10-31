@@ -174,8 +174,8 @@ class Select2Mixin(object):
         :rtype: :py:obj:`dict`
         """
         options = dict(self.options)
-        if options.get('allowClear', None) is not None:
-            options['allowClear'] = not self.is_required
+        #if options.get('allowClear', None) is not None:
+        #    options['allowClear'] = not self.is_required
         return options
 
     def render_js_code(self, id_, *args):
@@ -219,7 +219,7 @@ class Select2Mixin(object):
         options = json.dumps(self.get_options())
         options = options.replace('"*START*', '').replace('*END*"', '')
         # selector variable must already be passed to this
-        return u'$(hashedSelector).select2(%s);' % (options)
+        return u'var selector="'+ id_+ '";$("#'+ id_ + '").select2(%s);' % (options)
 
     def render(self, name, value, attrs=None, choices=()):
         """
@@ -320,6 +320,8 @@ class MultipleSelect2HiddenInput(forms.TextInput):
         if id_:
             jscode = u''
             if value:
+                if isinstance(value, (unicode, str)):
+                    value = value.split(',')
                 jscode = u'$("#%s").val(django_select2.convertArrToStr(%s));' % (id_, json.dumps(value))
             jscode += u"django_select2.initMultipleHidden($('#%s'));" % id_
             s += self.render_js_script(jscode)
@@ -502,7 +504,7 @@ class HeavySelect2Mixin(Select2Mixin):
                 return u"$('#%s').txt(%s);" % (id_, texts)
 
     def render_inner_js_code(self, id_, name, value, attrs=None, choices=(), *args):
-        js = u'$(hashedSelector).change(django_select2.onValChange).data("userGetValText", null);'
+        js = u'var selector="'+ id_+ '";$("#'+ id_ + '").change(django_select2.onValChange).data("userGetValText", null);'
         texts = self.render_texts_for_value(id_, value, choices)
         if texts:
             js += texts
