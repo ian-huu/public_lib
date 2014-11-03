@@ -5,12 +5,12 @@ import re, string
 import StringIO
 
 def send(from_addr, to_addr, subject, text, files, conf = {}):
-    from_addr = from_addr if from_addr else conf['from'] if 'from' in conf else 'service@ethercap.com'
+    from_addr = from_addr if from_addr else conf['from'] if 'from' in conf else '***'
     to_addr = ','.join(to_addr) if isinstance(to_addr, (list, tuple)) else to_addr
 
-    server = conf['server'] if 'server' in conf else "smtp.exmail.qq.com"
+    server = conf['server'] if 'server' in conf else "***"
     port = conf['port'] if 'port' in conf else 465
-    username = conf['username'] if 'username' in conf else 'service@ethercap.com'
+    username = conf['username'] if 'username' in conf else '***'
     passwd = conf['passwd'] if 'passwd' in conf else '***'
     server = smtplib.SMTP_SSL(server, port)
     server.ehlo()
