@@ -17,6 +17,7 @@ def send(from_addr, to_addr, subject, text, files, conf = {}):
     server.ehlo()
     server.login(username, passwd)
     msg = email.MIMEMultipart.MIMEMultipart()
+    msg.set_charset('utf8')
     msg['From'] = from_addr
     msg['To'] = to_addr
     if 'cc' in conf:
