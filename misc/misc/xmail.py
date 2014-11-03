@@ -9,7 +9,7 @@ def send(from_addr, to_addr, subject, text, files, conf = {}):
     to_addr = ','.join(to_addr) if isinstance(to_addr, (list, tuple)) else to_addr
 
     server = conf['server'] if 'server' in conf else "smtp.exmail.qq.com"
-    port = cinf['port'] if 'port' in conf else 465
+    port = conf['port'] if 'port' in conf else 465
     username = conf['username'] if 'username' in conf else 'service@ethercap.com'
     passwd = conf['passwd'] if 'passwd' in conf else '***'
     server = smtplib.SMTP_SSL(server, port)
