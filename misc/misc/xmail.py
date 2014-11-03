@@ -27,11 +27,9 @@ def send(from_addr, to_addr, subject, text, files, conf = {}):
     msg.attach(email.MIMEText.MIMEText(text, 'html', 'utf-8'))
 
     for name, f in files.items():
-        part = email.MIMEBase.MIMEBase('application', "octet-stream")
-        part.set_payload(f.getvalue() if isinstance(f, StringIO.StringIO) else open(f, "rb").read())
-        email.Encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="%s"' % name)
-        msg.attach(part)
+        att = email.mime.application.MIMEApplication(f.getvalue() if isinstance(f, StringIO.StringIO) else open(f, "rb").read())
+        att.add_header('Content-Disposition','attachment',filename=name)
+        msg.attach(att)
     to_addr_lst = filter(lambda x: x, to_addr.split(',')+ cc_addr.split(','))
     server.sendmail(from_addr, to_addr_lst, msg.as_string())
     server.close()
