@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time, datetime
 import smtplib, email
+import email.mime.application
 import re, string
 import StringIO
 
