@@ -219,7 +219,9 @@ class Select2Mixin(object):
         options = json.dumps(self.get_options())
         options = options.replace('"*START*', '').replace('*END*"', '')
         # selector variable must already be passed to this
-        return u'var selector="'+ id_+ '";$("#'+ id_ + '").select2(%s);' % (options)
+        base = u'var selector="'+ id_+ '";$("#'+ id_ + '").select2(%s);' % (options)
+        drag = u'$("#%s").select2("container").find("ul.select2-choices").sortable({containment: "parent",start: function() { $("#%s").select2("onSortStart"); },update: function() { $("#%s").select2("onSortEnd"); }});' % (id_, id_, id_)
+        return base + drag
 
     def render(self, name, value, attrs=None, choices=()):
         """
@@ -509,7 +511,8 @@ class HeavySelect2Mixin(Select2Mixin):
         if texts:
             js += texts
         js += super(HeavySelect2Mixin, self).render_inner_js_code(id_, name, value, attrs, choices, *args)
-        return js
+        drag = u'$("#%s").select2("container").find("ul.select2-choices").sortable({containment: "parent",start: function() { $("#%s").select2("onSortStart"); },update: function() { $("#%s").select2("onSortEnd"); }});' % (id_, id_, id_)
+        return js + drag
 
     class Media:
         js = get_select2_heavy_js_libs()
@@ -647,7 +650,8 @@ class AutoHeavySelect2Mixin(object):
             js += super(AutoHeavySelect2Mixin, self).render_inner_js_code(id_, *args)
             js += '};'
             js += 'django_select2.%s("%s", "%s");' % (fieldset_id, id_, self.field_id)
-            return js
+            drag = u'$("#%s").select2("container").find("ul.select2-choices").sortable({containment: "parent",start: function() { $("#%s").select2("onSortStart"); },update: function() { $("#%s").select2("onSortEnd"); }});' % (id_, id_, id_)
+            return js + drag
 
 
 class AutoHeavySelect2Widget(AutoHeavySelect2Mixin, HeavySelect2Widget):
