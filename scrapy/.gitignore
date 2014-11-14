@@ -1,10 +1,5 @@
+.DS_Store
+.pydevproject
+.project
 *.pyc
-_trial_temp*
-dropin.cache
-docs/build
-*egg-info
-.tox
-venv
-build
-dist
-.idea
+.settings/
