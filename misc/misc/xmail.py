@@ -5,7 +5,7 @@ import email.mime.application
 import re, string
 import StringIO
 
-def send(from_addr, to_addr, subject, text, files, conf = {}):
+def send(from_addr, to_addr, subject, text, files, conf={}):
     from_addr = from_addr if from_addr else conf['from'] if 'from' in conf else '***'
     to_addr = ','.join(to_addr) if isinstance(to_addr, (list, tuple)) else to_addr
 
@@ -28,10 +28,11 @@ def send(from_addr, to_addr, subject, text, files, conf = {}):
     msg['Subject'] = subject
     msg.attach(email.MIMEText.MIMEText(text, 'html', 'utf-8'))
 
-    for name, f in files.items():
-        att = email.mime.application.MIMEApplication(f.getvalue() if isinstance(f, StringIO.StringIO) else open(f, "rb").read())
-        att.add_header('Content-Disposition','attachment',filename=name)
-        msg.attach(att)
-    to_addr_lst = filter(lambda x: x, to_addr.split(',')+ cc_addr.split(','))
+    if files:
+        for name, f in files.items():
+            att = email.mime.application.MIMEApplication(f.getvalue() if isinstance(f, StringIO.StringIO) else open(f, "rb").read())
+            att.add_header('Content-Disposition', 'attachment', filename=name)
+            msg.attach(att)
+    to_addr_lst = filter(lambda x: x, to_addr.split(',') + cc_addr.split(','))
     server.sendmail(from_addr, to_addr_lst, msg.as_string())
     server.close()
