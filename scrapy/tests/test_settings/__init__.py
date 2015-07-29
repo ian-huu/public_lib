@@ -1,12 +1,9 @@
 import six
 import unittest
 import warnings
-try:
-    from unittest import mock
-except ImportError:
-    import mock
 
 from scrapy.settings import Settings, SettingsAttribute, CrawlerSettings
+from tests import mock
 from . import default_settings
 
 
@@ -32,6 +29,9 @@ class SettingsAttributeTest(unittest.TestCase):
 
 
 class SettingsTest(unittest.TestCase):
+
+    if six.PY3:
+        assertItemsEqual = unittest.TestCase.assertCountEqual
 
     def setUp(self):
         self.settings = Settings()

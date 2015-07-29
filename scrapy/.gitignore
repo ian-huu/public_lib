@@ -1,5 +1,15 @@
-.DS_Store
-.pydevproject
-.project
+/.vagrant
+/scrapy.iml
 *.pyc
-.settings/
+_trial_temp*
+dropin.cache
+docs/build
+*egg-info
+.tox
+venv
+build
+dist
+.idea
+
+# Windows
+Thumbs.db

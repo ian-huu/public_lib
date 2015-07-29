@@ -8,17 +8,17 @@ from contextlib import contextmanager
 import pytest
 
 from scrapy.http import Response, HtmlResponse, Request
-from scrapy.spider import Spider
+from scrapy.spiders import Spider
 from scrapy.settings import Settings
 from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.test import get_crawler
-from scrapy.contrib.downloadermiddleware.httpcache import HttpCacheMiddleware
+from scrapy.downloadermiddlewares.httpcache import HttpCacheMiddleware
 
 
 class _BaseTest(unittest.TestCase):
 
-    storage_class = 'scrapy.contrib.httpcache.DbmCacheStorage'
-    policy_class = 'scrapy.contrib.httpcache.RFC2616Policy'
+    storage_class = 'scrapy.extensions.httpcache.DbmCacheStorage'
+    policy_class = 'scrapy.extensions.httpcache.RFC2616Policy'
 
     def setUp(self):
         self.yesterday = email.utils.formatdate(time.time() - 86400)
@@ -89,6 +89,18 @@ class _BaseTest(unittest.TestCase):
         assert any(h in request2.headers for h in ('If-None-Match', 'If-Modified-Since'))
         self.assertEqual(request1.body, request2.body)
 
+    def test_dont_cache(self):
+        with self._middleware() as mw:
+            self.request.meta['dont_cache'] = True
+            mw.process_response(self.request, self.response, self.spider)
+            self.assertEqual(mw.storage.retrieve_response(self.spider, self.request), None)
+
+        with self._middleware() as mw:
+            self.request.meta['dont_cache'] = False
+            mw.process_response(self.request, self.response, self.spider)
+            if mw.policy.should_cache_response(self.response, self.request):
+                self.assertIsInstance(mw.storage.retrieve_response(self.spider, self.request), self.response.__class__)
+
 
 class DefaultStorageTest(_BaseTest):
 
@@ -115,7 +127,7 @@ class DefaultStorageTest(_BaseTest):
 
 class DbmStorageTest(DefaultStorageTest):
 
-    storage_class = 'scrapy.contrib.httpcache.DbmCacheStorage'
+    storage_class = 'scrapy.extensions.httpcache.DbmCacheStorage'
 
 
 class DbmStorageWithCustomDbmModuleTest(DbmStorageTest):
@@ -134,18 +146,23 @@ class DbmStorageWithCustomDbmModuleTest(DbmStorageTest):
 
 class FilesystemStorageTest(DefaultStorageTest):
 
-    storage_class = 'scrapy.contrib.httpcache.FilesystemCacheStorage'
+    storage_class = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
+class FilesystemStorageGzipTest(FilesystemStorageTest):
+
+    def _get_settings(self, **new_settings):
+        new_settings.setdefault('HTTPCACHE_GZIP', True)
+        return super(FilesystemStorageTest, self)._get_settings(**new_settings)
 
 class LeveldbStorageTest(DefaultStorageTest):
 
     pytest.importorskip('leveldb')
-    storage_class = 'scrapy.contrib.httpcache.LeveldbCacheStorage'
+    storage_class = 'scrapy.extensions.httpcache.LeveldbCacheStorage'
 
 
 class DummyPolicyTest(_BaseTest):
 
-    policy_class = 'scrapy.contrib.httpcache.DummyPolicy'
+    policy_class = 'scrapy.extensions.httpcache.DummyPolicy'
 
     def test_middleware(self):
         with self._middleware() as mw:
@@ -237,7 +254,7 @@ class DummyPolicyTest(_BaseTest):
 
 class RFC2616PolicyTest(DefaultStorageTest):
 
-    policy_class = 'scrapy.contrib.httpcache.RFC2616Policy'
+    policy_class = 'scrapy.extensions.httpcache.RFC2616Policy'
 
     def _process_requestresponse(self, mw, request, response):
         try:

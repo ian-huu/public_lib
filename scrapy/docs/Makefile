@@ -8,6 +8,7 @@ PYTHON       = python
 SPHINXOPTS   =
 PAPER        =
 SOURCES      =
+SHELL        = /bin/bash
 
 ALLSPHINXOPTS = -b $(BUILDER) -d build/doctrees -D latex_paper_size=$(PAPER) \
                 $(SPHINXOPTS) . build/$(BUILDER) $(SOURCES)
@@ -26,7 +27,7 @@ help:
 
 build: 
 	mkdir -p build/$(BUILDER) build/doctrees
-	sphinx-build $(ALLSPHINXOPTS)
+	-sphinx-build $(ALLSPHINXOPTS)
 	@echo
 
 
@@ -58,6 +59,11 @@ linkcheck: build
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in build/$(BUILDER)/output.txt"
 
+linkfix: linkcheck
+	$(PYTHON) utils/linkfix.py
+	@echo "Fixing redirecting links in docs has finished; check all " \
+	      "replacements before committing them"
+
 doctest: BUILDER = doctest
 doctest: build
 	@echo "Testing of doctests in the sources finished, look at the " \
@@ -74,3 +80,5 @@ htmlview: html
 clean:
 	-rm -rf build/*
 
+watch: htmlview
+	watchmedo shell-command -p '*.rst' -c 'make html' -R -D

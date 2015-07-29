@@ -1,3 +1,5 @@
+.. _topics-autothrottle:
+
 ======================
 AutoThrottle extension
 ======================
@@ -11,7 +13,7 @@ Design goals
 1. be nicer to sites instead of using default download delay of zero
 2. automatically adjust scrapy to the optimum crawling speed, so the user
    doesn't have to tune the download delays and concurrent requests to find the
-   optimum one. the user only needs to specify the maximum concurrent requests
+   optimum one. The user only needs to specify the maximum concurrent requests
    it allows, and the extension does the rest.
 
 How it works

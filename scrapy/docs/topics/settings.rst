@@ -16,6 +16,8 @@ project (in case you have many).
 
 For a list of available built-in settings see: :ref:`topics-settings-ref`.
 
+.. _topics-settings-module-envvar:
+
 Designating the settings
 ========================
 
@@ -26,7 +28,7 @@ The value of ``SCRAPY_SETTINGS_MODULE`` should be in Python path syntax, e.g.
 ``myproject.settings``. Note that the settings module should be on the
 Python `import search path`_.
 
-.. _import search path: http://docs.python.org/2/tutorial/modules.html#the-module-search-path
+.. _import search path: https://docs.python.org/2/tutorial/modules.html#the-module-search-path
 
 Populating the settings
 =======================
@@ -65,7 +67,7 @@ Example::
 
 Spiders (See the :ref:`topics-spiders` chapter for reference) can define their
 own settings that will take precedence and override the project ones. They can
-do so by setting their :attr:`scrapy.spider.Spider.custom_settings` attribute.
+do so by setting their :attr:`scrapy.spiders.Spider.custom_settings` attribute.
 
 3. Project settings module
 --------------------------
@@ -237,7 +239,7 @@ Default::
     }
 
 The default headers used for Scrapy HTTP Requests. They're populated in the
-:class:`~scrapy.contrib.downloadermiddleware.defaultheaders.DefaultHeadersMiddleware`.
+:class:`~scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware`.
 
 .. setting:: DEPTH_LIMIT
 
@@ -288,6 +290,24 @@ Default: ``True``
 
 Whether to enable DNS in-memory cache.
 
+.. setting:: DNSCACHE_SIZE
+
+DNSCACHE_SIZE
+----------------
+
+Default: ``10000``
+
+DNS in-memory cache size.
+
+.. setting:: DNS_TIMEOUT
+
+DNS_TIMEOUT
+----------------
+
+Default: ``60``
+
+Timeout for processing of DNS queries in seconds. Float is supported.
+
 .. setting:: DOWNLOADER
 
 DOWNLOADER
@@ -315,20 +335,20 @@ DOWNLOADER_MIDDLEWARES_BASE
 Default::
 
     {
-        'scrapy.contrib.downloadermiddleware.robotstxt.RobotsTxtMiddleware': 100,
-        'scrapy.contrib.downloadermiddleware.httpauth.HttpAuthMiddleware': 300,
-        'scrapy.contrib.downloadermiddleware.downloadtimeout.DownloadTimeoutMiddleware': 350,
-        'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': 400,
-        'scrapy.contrib.downloadermiddleware.retry.RetryMiddleware': 500,
-        'scrapy.contrib.downloadermiddleware.defaultheaders.DefaultHeadersMiddleware': 550,
-        'scrapy.contrib.downloadermiddleware.redirect.MetaRefreshMiddleware': 580,
-        'scrapy.contrib.downloadermiddleware.httpcompression.HttpCompressionMiddleware': 590,
-        'scrapy.contrib.downloadermiddleware.redirect.RedirectMiddleware': 600,
-        'scrapy.contrib.downloadermiddleware.cookies.CookiesMiddleware': 700,
-        'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 750,
-        'scrapy.contrib.downloadermiddleware.chunked.ChunkedTransferMiddleware': 830,
-        'scrapy.contrib.downloadermiddleware.stats.DownloaderStats': 850,
-        'scrapy.contrib.downloadermiddleware.httpcache.HttpCacheMiddleware': 900,
+        'scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware': 100,
+        'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware': 300,
+        'scrapy.downloadermiddlewares.downloadtimeout.DownloadTimeoutMiddleware': 350,
+        'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': 400,
+        'scrapy.downloadermiddlewares.retry.RetryMiddleware': 500,
+        'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware': 550,
+        'scrapy.downloadermiddlewares.redirect.MetaRefreshMiddleware': 580,
+        'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 590,
+        'scrapy.downloadermiddlewares.redirect.RedirectMiddleware': 600,
+        'scrapy.downloadermiddlewares.cookies.CookiesMiddleware': 700,
+        'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 750,
+        'scrapy.downloadermiddlewares.chunked.ChunkedTransferMiddleware': 830,
+        'scrapy.downloadermiddlewares.stats.DownloaderStats': 850,
+        'scrapy.downloadermiddlewares.httpcache.HttpCacheMiddleware': 900,
     }
 
 A dict containing the downloader middlewares enabled by default in Scrapy. You
@@ -422,12 +442,52 @@ The amount of time (in secs) that the downloader will wait before timing out.
     spider attribute and per-request using :reqmeta:`download_timeout`
     Request.meta key.
 
+.. setting:: DOWNLOAD_MAXSIZE
+
+DOWNLOAD_MAXSIZE
+----------------
+
+Default: `1073741824` (1024MB)
+
+The maximum response size (in bytes) that downloader will download.
+
+If you want to disable it set to 0.
+
+.. reqmeta:: download_maxsize
+
+.. note::
+
+    This size can be set per spider using :attr:`download_maxsize`
+    spider attribute and per-request using :reqmeta:`download_maxsize`
+    Request.meta key.
+
+    This feature needs Twisted >= 11.1.
+
+.. setting:: DOWNLOAD_WARNSIZE
+
+DOWNLOAD_WARNSIZE
+-----------------
+
+Default: `33554432` (32MB)
+
+The response size (in bytes) that downloader will start to warn.
+
+If you want to disable it set to 0.
+
+.. note::
+
+    This size can be set per spider using :attr:`download_warnsize`
+    spider attribute and per-request using :reqmeta:`download_warnsize`
+    Request.meta key.
+
+    This feature needs Twisted >= 11.1.
+
 .. setting:: DUPEFILTER_CLASS
 
 DUPEFILTER_CLASS
 ----------------
 
-Default: ``'scrapy.dupefilter.RFPDupeFilter'``
+Default: ``'scrapy.dupefilters.RFPDupeFilter'``
 
 The class used to detect and filter duplicate requests.
 
@@ -476,15 +536,15 @@ EXTENSIONS_BASE
 Default::
 
     {
-        'scrapy.contrib.corestats.CoreStats': 0,
+        'scrapy.extensions.corestats.CoreStats': 0,
         'scrapy.telnet.TelnetConsole': 0,
-        'scrapy.contrib.memusage.MemoryUsage': 0,
-        'scrapy.contrib.memdebug.MemoryDebugger': 0,
-        'scrapy.contrib.closespider.CloseSpider': 0,
-        'scrapy.contrib.feedexport.FeedExporter': 0,
-        'scrapy.contrib.logstats.LogStats': 0,
-        'scrapy.contrib.spiderstate.SpiderState': 0,
-        'scrapy.contrib.throttle.AutoThrottle': 0,
+        'scrapy.extensions.memusage.MemoryUsage': 0,
+        'scrapy.extensions.memdebug.MemoryDebugger': 0,
+        'scrapy.extensions.closespider.CloseSpider': 0,
+        'scrapy.extensions.feedexport.FeedExporter': 0,
+        'scrapy.extensions.logstats.LogStats': 0,
+        'scrapy.extensions.spiderstate.SpiderState': 0,
+        'scrapy.extensions.throttle.AutoThrottle': 0,
     }
 
 The list of available extensions. Keep in mind that some of them need to
@@ -552,6 +612,31 @@ Default: ``None``
 
 File name to use for logging output. If None, standard error will be used.
 
+.. setting:: LOG_FORMAT
+
+LOG_FORMAT
+----------
+
+Default: ``'%(asctime)s [%(name)s] %(levelname)s: %(message)s'``
+
+String for formatting log messsages. Refer to the `Python logging documentation`_ for the whole list of available
+placeholders.
+
+.. _Python logging documentation: https://docs.python.org/2/library/logging.html#logrecord-attributes
+
+.. setting:: LOG_DATEFORMAT
+
+LOG_DATEFORMAT
+--------------
+
+Default: ``'%Y-%m-%d %H:%M:%S'``
+
+String for formatting date/time, expansion of the ``%(asctime)s`` placeholder
+in :setting:`LOG_FORMAT`. Refer to the `Python datetime documentation`_ for the whole list of available
+directives.
+
+.. _Python datetime documentation: https://docs.python.org/2/library/datetime.html#strftime-and-strptime-behavior
+
 .. setting:: LOG_LEVEL
 
 LOG_LEVEL
@@ -604,7 +689,7 @@ MEMUSAGE_ENABLED
 
 Default: ``False``
 
-Scope: ``scrapy.contrib.memusage``
+Scope: ``scrapy.extensions.memusage``
 
 Whether to enable the memory usage extension that will shutdown the Scrapy
 process when it exceeds a memory limit, and also notify by email when that
@@ -619,7 +704,7 @@ MEMUSAGE_LIMIT_MB
 
 Default: ``0``
 
-Scope: ``scrapy.contrib.memusage``
+Scope: ``scrapy.extensions.memusage``
 
 The maximum amount of memory to allow (in megabytes) before shutting down
 Scrapy  (if MEMUSAGE_ENABLED is True). If zero, no check will be performed.
@@ -633,7 +718,7 @@ MEMUSAGE_NOTIFY_MAIL
 
 Default: ``False``
 
-Scope: ``scrapy.contrib.memusage``
+Scope: ``scrapy.extensions.memusage``
 
 A list of emails to notify if the memory limit has been reached.
 
@@ -650,7 +735,7 @@ MEMUSAGE_REPORT
 
 Default: ``False``
 
-Scope: ``scrapy.contrib.memusage``
+Scope: ``scrapy.extensions.memusage``
 
 Whether to send a memory usage report after each spider has been closed.
 
@@ -663,7 +748,7 @@ MEMUSAGE_WARNING_MB
 
 Default: ``0``
 
-Scope: ``scrapy.contrib.memusage``
+Scope: ``scrapy.extensions.memusage``
 
 The maximum amount of memory to allow (in megabytes) before sending a warning
 email notifying about it. If zero, no warning will be produced.
@@ -701,6 +786,18 @@ The randomization policy is the same used by `wget`_ ``--random-wait`` option.
 If :setting:`DOWNLOAD_DELAY` is zero (default) this option has no effect.
 
 .. _wget: http://www.gnu.org/software/wget/manual/wget.html
+
+.. setting:: REACTOR_THREADPOOL_MAXSIZE
+
+REACTOR_THREADPOOL_MAXSIZE
+--------------------------
+
+Default: ``10``
+
+The maximum limit for Twisted Reactor thread pool size. This is common
+multi-purpose thread pool used by various Scrapy components. Threaded
+DNS Resolver, BlockingFeedStorage, S3FilesStore just to name a few. Increase
+this value if you're experiencing problems with insufficient blocking IO.
 
 .. setting:: REDIRECT_MAX_TIMES
 
@@ -740,7 +837,7 @@ ROBOTSTXT_OBEY
 
 Default: ``False``
 
-Scope: ``scrapy.contrib.downloadermiddleware.robotstxt``
+Scope: ``scrapy.downloadermiddlewares.robotstxt``
 
 If enabled, Scrapy will respect robots.txt policies. For more information see
 :ref:`topics-dlmw-robots`
@@ -781,15 +878,15 @@ A dict containing the scrapy contracts enabled by default in Scrapy. You should
 never modify this setting in your project, modify :setting:`SPIDER_CONTRACTS`
 instead. For more info see :ref:`topics-contracts`.
 
-.. setting:: SPIDER_MANAGER_CLASS
+.. setting:: SPIDER_LOADER_CLASS
 
-SPIDER_MANAGER_CLASS
---------------------
+SPIDER_LOADER_CLASS
+-------------------
 
-Default: ``'scrapy.spidermanager.SpiderManager'``
+Default: ``'scrapy.spiderloader.SpiderLoader'``
 
-The class that will be used for handling spiders, which must implement the
-:ref:`topics-api-spidermanager`.
+The class that will be used for loading spiders, which must implement the
+:ref:`topics-api-spiderloader`.
 
 .. setting:: SPIDER_MIDDLEWARES
 
@@ -809,11 +906,11 @@ SPIDER_MIDDLEWARES_BASE
 Default::
 
     {
-        'scrapy.contrib.spidermiddleware.httperror.HttpErrorMiddleware': 50,
-        'scrapy.contrib.spidermiddleware.offsite.OffsiteMiddleware': 500,
-        'scrapy.contrib.spidermiddleware.referer.RefererMiddleware': 700,
-        'scrapy.contrib.spidermiddleware.urllength.UrlLengthMiddleware': 800,
-        'scrapy.contrib.spidermiddleware.depth.DepthMiddleware': 900,
+        'scrapy.spidermiddlewares.httperror.HttpErrorMiddleware': 50,
+        'scrapy.spidermiddlewares.offsite.OffsiteMiddleware': 500,
+        'scrapy.spidermiddlewares.referer.RefererMiddleware': 700,
+        'scrapy.spidermiddlewares.urllength.UrlLengthMiddleware': 800,
+        'scrapy.spidermiddlewares.depth.DepthMiddleware': 900,
     }
 
 A dict containing the spider middlewares enabled by default in Scrapy. You
@@ -839,7 +936,7 @@ Example::
 STATS_CLASS
 -----------
 
-Default: ``'scrapy.statscol.MemoryStatsCollector'``
+Default: ``'scrapy.statscollectors.MemoryStatsCollector'``
 
 The class to use for collecting stats, who must implement the
 :ref:`topics-api-stats`.
@@ -864,7 +961,7 @@ STATSMAILER_RCPTS
 Default: ``[]`` (empty list)
 
 Send Scrapy stats after spiders finish scraping. See
-:class:`~scrapy.contrib.statsmailer.StatsMailer` for more info.
+:class:`~scrapy.extensions.statsmailer.StatsMailer` for more info.
 
 .. setting:: TELNETCONSOLE_ENABLED
 
@@ -904,7 +1001,7 @@ URLLENGTH_LIMIT
 
 Default: ``2083``
 
-Scope: ``contrib.spidermiddleware.urllength``
+Scope: ``spidermiddlewares.urllength``
 
 The maximum URL length to allow for crawled URLs. For more information about
 the default value for this setting see: http://www.boutell.com/newfaq/misc/urllength.html
@@ -917,6 +1014,16 @@ USER_AGENT
 Default: ``"Scrapy/VERSION (+http://scrapy.org)"``
 
 The default User-Agent to use when crawling, unless overridden.
+
+
+Settings documented elsewhere:
+------------------------------
+
+The following settings are documented elsewhere, please check each specific
+case to see how to enable and use them.
+
+.. settingslist::
+
 
 .. _Amazon web services: http://aws.amazon.com/
 .. _breadth-first order: http://en.wikipedia.org/wiki/Breadth-first_search

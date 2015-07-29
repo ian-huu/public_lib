@@ -1,8 +1,7 @@
 import os
 from twisted.trial import unittest
 
-from scrapy.utils.iterators import csviter, xmliter, _body_or_str
-from scrapy.contrib_exp.iterators import xmliter_lxml
+from scrapy.utils.iterators import csviter, xmliter, _body_or_str, xmliter_lxml
 from scrapy.http import XmlResponse, TextResponse, Response
 from tests import get_testdata
 
@@ -124,6 +123,38 @@ class LxmlXmliterTestCase(XmliterTestCase):
         node = next(namespace_iter)
         self.assertEqual(node.xpath('text()').extract(), ['http://www.mydummycompany.com/images/item2.jpg'])
 
+    def test_xmliter_namespaces_prefix(self):
+        body = """\
+        <?xml version="1.0" encoding="UTF-8"?>
+        <root>
+            <h:table xmlns:h="http://www.w3.org/TR/html4/">
+              <h:tr>
+                <h:td>Apples</h:td>
+                <h:td>Bananas</h:td>
+              </h:tr>
+            </h:table>
+
+            <f:table xmlns:f="http://www.w3schools.com/furniture">
+              <f:name>African Coffee Table</f:name>
+              <f:width>80</f:width>
+              <f:length>120</f:length>
+            </f:table>
+
+        </root>
+        """
+        response = XmlResponse(url='http://mydummycompany.com', body=body)
+        my_iter = self.xmliter(response, 'table', 'http://www.w3.org/TR/html4/', 'h')
+
+        node = next(my_iter)
+        self.assertEqual(len(node.xpath('h:tr/h:td').extract()), 2)
+        self.assertEqual(node.xpath('h:tr/h:td[1]/text()').extract(), ['Apples'])
+        self.assertEqual(node.xpath('h:tr/h:td[2]/text()').extract(), ['Bananas'])
+
+        my_iter = self.xmliter(response, 'table', 'http://www.w3schools.com/furniture', 'f')
+
+        node = next(my_iter)
+        self.assertEqual(node.xpath('f:name/text()').extract(), ['African Coffee Table'])
+
 
 class UtilsCsvTestCase(unittest.TestCase):
     sample_feeds_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'sample_data', 'feeds')
@@ -158,6 +189,39 @@ class UtilsCsvTestCase(unittest.TestCase):
                           {u'id': u'2', u'name': u'unicode', u'value': u'\xfan\xedc\xf3d\xe9\u203d'},
                           {u'id': u'3', u'name': u'multi',   u'value': FOOBAR_NL},
                           {u'id': u'4', u'name': u'empty',   u'value': u''}])
+
+    def test_csviter_quotechar(self):
+        body1 = get_testdata('feeds', 'feed-sample6.csv')
+        body2 = get_testdata('feeds', 'feed-sample6.csv').replace(",", '|')
+        
+        response1 = TextResponse(url="http://example.com/", body=body1)
+        csv1 = csviter(response1, quotechar="'")
+
+        self.assertEqual([row for row in csv1],
+                         [{u'id': u'1', u'name': u'alpha',   u'value': u'foobar'},
+                          {u'id': u'2', u'name': u'unicode', u'value': u'\xfan\xedc\xf3d\xe9\u203d'},
+                          {u'id': u'3', u'name': u'multi',   u'value': FOOBAR_NL},
+                          {u'id': u'4', u'name': u'empty',   u'value': u''}])
+
+        response2 = TextResponse(url="http://example.com/", body=body2)
+        csv2 = csviter(response2, delimiter="|", quotechar="'")
+
+        self.assertEqual([row for row in csv2],
+                         [{u'id': u'1', u'name': u'alpha',   u'value': u'foobar'},
+                          {u'id': u'2', u'name': u'unicode', u'value': u'\xfan\xedc\xf3d\xe9\u203d'},
+                          {u'id': u'3', u'name': u'multi',   u'value': FOOBAR_NL},
+                          {u'id': u'4', u'name': u'empty',   u'value': u''}])
+
+    def test_csviter_wrong_quotechar(self):
+        body = get_testdata('feeds', 'feed-sample6.csv')
+        response = TextResponse(url="http://example.com/", body=body)
+        csv = csviter(response)
+
+        self.assertEqual([row for row in csv],
+                         [{u"'id'": u"1",   u"'name'": u"'alpha'",   u"'value'": u"'foobar'"},
+                          {u"'id'": u"2",   u"'name'": u"'unicode'", u"'value'": u"'\xfan\xedc\xf3d\xe9\u203d'"},
+                          {u"'id'": u"'3'", u"'name'": u"'multi'",   u"'value'": u"'foo"},
+                          {u"'id'": u"4",   u"'name'": u"'empty'",   u"'value'": u""}])
 
     def test_csviter_delimiter_binary_response_assume_utf8_encoding(self):
         body = get_testdata('feeds', 'feed-sample3.csv').replace(',', '\t')

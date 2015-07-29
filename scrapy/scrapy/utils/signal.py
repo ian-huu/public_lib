@@ -1,13 +1,17 @@
 """Helper functions for working with signals"""
 
+import logging
+
 from twisted.internet.defer import maybeDeferred, DeferredList, Deferred
 from twisted.python.failure import Failure
 
 from scrapy.xlib.pydispatch.dispatcher import Any, Anonymous, liveReceivers, \
     getAllReceivers, disconnect
 from scrapy.xlib.pydispatch.robustapply import robustApply
+from scrapy.utils.log import failure_to_exc_info
 
-from scrapy import log
+logger = logging.getLogger(__name__)
+
 
 def send_catch_log(signal=Any, sender=Anonymous, *arguments, **named):
     """Like pydispatcher.robust.sendRobust but it also logs errors and returns
@@ -21,14 +25,15 @@ def send_catch_log(signal=Any, sender=Anonymous, *arguments, **named):
             response = robustApply(receiver, signal=signal, sender=sender,
                 *arguments, **named)
             if isinstance(response, Deferred):
-                log.msg(format="Cannot return deferreds from signal handler: %(receiver)s",
-                        level=log.ERROR, spider=spider, receiver=receiver)
+                logger.error("Cannot return deferreds from signal handler: %(receiver)s",
+                             {'receiver': receiver}, extra={'spider': spider})
         except dont_log:
             result = Failure()
         except Exception:
             result = Failure()
-            log.err(result, "Error caught on signal handler: %s" % receiver, \
-                spider=spider)
+            logger.error("Error caught on signal handler: %(receiver)s",
+                         {'receiver': receiver},
+                         exc_info=True, extra={'spider': spider})
         else:
             result = response
         responses.append((receiver, result))
@@ -41,8 +46,10 @@ def send_catch_log_deferred(signal=Any, sender=Anonymous, *arguments, **named):
     """
     def logerror(failure, recv):
         if dont_log is None or not isinstance(failure.value, dont_log):
-            log.err(failure, "Error caught on signal handler: %s" % recv, \
-                spider=spider)
+            logger.error("Error caught on signal handler: %(receiver)s",
+                         {'receiver': recv},
+                         exc_info=failure_to_exc_info(failure),
+                         extra={'spider': spider})
         return failure
 
     dont_log = named.pop('dont_log', None)

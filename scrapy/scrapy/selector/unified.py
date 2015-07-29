@@ -3,11 +3,12 @@ XPath selectors based on lxml
 """
 
 from lxml import etree
+import six
 
 from scrapy.utils.misc import extract_regex
 from scrapy.utils.trackref import object_ref
-from scrapy.utils.python import unicode_to_str, flatten
-from scrapy.utils.decorator import deprecated
+from scrapy.utils.python import unicode_to_str, flatten, iflatten
+from scrapy.utils.decorators import deprecated
 from scrapy.http import HtmlResponse, XmlResponse
 from .lxmldocument import LxmlDocument
 from .csstranslator import ScrapyHTMLTranslator, ScrapyGenericTranslator
@@ -95,7 +96,8 @@ class Selector(object_ref):
             result = xpathev(query, namespaces=self.namespaces,
                              smart_strings=self._lxml_smart_strings)
         except etree.XPathError:
-            raise ValueError("Invalid XPath: %s" % query)
+            msg = u"Invalid XPath: %s" % query
+            raise ValueError(msg if six.PY3 else msg.encode("unicode_escape"))
 
         if type(result) is not list:
             result = [result]
@@ -175,8 +177,18 @@ class SelectorList(list):
     def re(self, regex):
         return flatten([x.re(regex) for x in self])
 
+    def re_first(self, regex):
+        for el in iflatten(x.re(regex) for x in self):
+            return el
+
     def extract(self):
         return [x.extract() for x in self]
+
+    def extract_first(self, default=None):
+        for x in self:
+            return x.extract()
+        else:
+            return default
 
     @deprecated(use_instead='.extract()')
     def extract_unquoted(self):
