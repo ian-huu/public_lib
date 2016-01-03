@@ -1,0 +1,32 @@
+language: python
+python: 2.7
+env:
+  - TOXENV=py27
+  - TOXENV=pypy
+  - TOXENV=py33
+  - TOXENV=py34
+
+install:
+  - pip install -U tox twine wheel codecov
+script: tox
+after_success:
+  - codecov
+
+notifications:
+  irc:
+    use_notice: true
+    skip_join: true
+    channels:
+      - irc.freenode.org#scrapy
+
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: scrapy
+  password:
+    secure: kY3UdcidDTnwfBY9gGeUDK7g9k9Weg+AEo1CJYdQ8fBYQkIQBubbTiu1UGqOb0v/btySZDidp/jsGPLxlTZ34sG9jQEiteQILHJMjLzgcNNTSBsf8VIqTxcLpxS+RgeB2MyITOvYhxNMI4ezMXkm9TH7jL60gv/4BtiMOTpFzr8=
+  on:
+    tags: true
+    all_branches: true
+    repo: scrapy/parsel
+    condition: $TOXENV == py27
